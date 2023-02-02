@@ -5,8 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall_edu.app.BaseApp;
 import com.atguigu.gmall_edu.bean.TableProcess;
 import com.atguigu.gmall_edu.common.Constant;
+import com.atguigu.gmall_edu.util.DimUtil;
 import com.atguigu.gmall_edu.util.FlinkSinkUtil;
 import com.atguigu.gmall_edu.util.JdbcUtil;
+import com.atguigu.gmall_edu.util.RedisUtil;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -23,6 +25,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
+import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -87,10 +90,12 @@ public class DimApp extends BaseApp {
         return etlStream.connect(tpBroadCastStream)
                 .process(new BroadcastProcessFunction<JSONObject, TableProcess, Tuple2<JSONObject, TableProcess>>() {
 
+                    private Jedis jedis;
                     private Map<String, TableProcess> map;
 
                     @Override
                     public void open(Configuration parameters) throws Exception {
+                        jedis = RedisUtil.getRedisClient();
                         Connection conn = JdbcUtil.getMysqlConnection();
                         String sql = "select * from table_process where sink_type=?";
                         Object[] args = {"dim"};
@@ -123,6 +128,7 @@ public class DimApp extends BaseApp {
                         if (tp != null){
                             out.collect(Tuple2.of(value.getJSONObject("data"), tp));
                         }
+
                     }
 
                     @Override

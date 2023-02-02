@@ -42,9 +42,9 @@ public class DWS_06_DWSTradeCartAdd extends BaseApp {
         //aggStream.print();
 
         SingleOutputStreamOperator<TradeCartAddBean> dimStream = joinDims(aggStream);
-        dimStream.print();
+        //dimStream.print();
 
-        //writeToClickhouse(aggStream);
+        writeToClickhouse(dimStream);
     }
 
     private void writeToClickhouse(SingleOutputStreamOperator<TradeCartAddBean> aggStream) {

@@ -38,6 +38,16 @@ public class DWD_03_DWDTradeOrderDetail extends BaseSqlApp {
                 "and type = 'insert' ");
         tableEnv.createTemporaryView("order_detail", orderDetail);
 
+        // 过滤order_info
+        Table orderInfo = tableEnv.sqlQuery("select " +
+                "data['id'] id, " +
+                "data['province_id'] province_id " +
+                "from ods_db " +
+                "where `database` = 'gmall_edu' " +
+                "and `table` = 'order_info' " +
+                "and type = 'insert' ");
+        tableEnv.createTemporaryView("order_info", orderInfo);
+
         // 读取页面日志
         readOdsLog(tableEnv, "DWD_02_DWDTradeOrderDetail");
         // 过滤出订单页面
@@ -51,16 +61,19 @@ public class DWD_03_DWDTradeOrderDetail extends BaseSqlApp {
 
         tableEnv.getConfig().setIdleStateRetention(Duration.ofSeconds(30 * 60 + 5));
         Table result = tableEnv.sqlQuery("select " +
-                "id, " +
+                "od.id, " +
                 "course_id, " +
                 "course_name, " +
                 "order_id, " +
                 "user_id, " +
                 "final_amount, " +
+                "province_id, " +
                 "create_time, " +
                 "sc, " +
                 "ts " +
                 "from order_detail od " +
+                "join order_info oi " +
+                "on od.order_id = oi.id " +
                 "left join order_source os " +
                 "on od.order_id = os.item ");
 
@@ -72,6 +85,7 @@ public class DWD_03_DWDTradeOrderDetail extends BaseSqlApp {
                 "order_id string, " +
                 "user_id string, " +
                 "final_amount string, " +
+                "province_id string, " +
                 "create_time string, " +
                 "sc string, " +
                 "ts bigint, " +

@@ -44,6 +44,7 @@ public class DWD_04_DWDTradePaySucDetail extends BaseSqlApp {
                 "course_name string, " +
                 "order_id string, " +
                 "user_id string, " +
+                "province_id string, " +
                 "final_amount string, " +
                 "create_time string, " +
                 "sc string " +
@@ -56,9 +57,11 @@ public class DWD_04_DWDTradePaySucDetail extends BaseSqlApp {
                 "pi.payment_type, " +
                 "od.course_id, " +
                 "od.course_name, " +
+                "od.province_id, " +
                 "od.user_id, " +
                 "od.final_amount order_detail_amount, " +
-                "od.sc " +
+                "od.sc, " +
+                "ts " +
                 "from payment_info pi " +
                 "join order_detail od " +
                 "on pi.order_id = od.order_id");
@@ -70,9 +73,11 @@ public class DWD_04_DWDTradePaySucDetail extends BaseSqlApp {
                 "payment_type string, " +
                 "course_id string, " +
                 "course_name string, " +
+                "province_id string, " +
                 "user_id string, " +
                 "order_detail_amount string, " +
-                "sc string " +
+                "sc string, " +
+                "ts bigint" +
                 ")" + SqlUtil.getKafkaSinkConnector(Constant.TOPIC_DWD_TRADE_PAY_SUC_DETAIL));
         result.executeInsert("dwd_trade_pay_suc_detail");
     }

@@ -1,15 +1,19 @@
 package com.atguigu.gmall_edu.bean;
 
+import com.atguigu.gmall_edu.annotation.NotSink;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TradeCartAddBean {
+public class TradeCourseReviewBean {
     // 窗口开始时间
     private String stt;
 
@@ -22,23 +26,25 @@ public class TradeCartAddBean {
     // 课程名称
     private String courseName;
 
-    // 学科id
-    private String subjectId;
+    // 评分
+    @NotSink
+    private Integer score;
 
-    // 学科名称
+    // 平均分
+    private BigDecimal avgScore;
+
+    // 评价人数
+    @NotSink
+    private HashSet<String> userSet;
+    private Long userCount;
+
+    // 好评数
+    @NotSink
     @Builder.Default
-    private String subjectName = "";
+    private Long goodCount = 0L;
 
-    // 分类id
-    @Builder.Default
-    private String categoryId = "";
-
-    // 分类名称
-    @Builder.Default
-    private String categoryName = "";
-
-    // 加购人数
-    private Long cartCount;
+    // 好评率
+    private BigDecimal goodRate;
 
     // 时间戳
     private Long ts;

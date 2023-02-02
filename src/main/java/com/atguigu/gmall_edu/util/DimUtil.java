@@ -52,7 +52,12 @@ public class DimUtil {
                 false
         );
 
-        return list.get(0);
+        if (list.size() > 0){
+            return list.get(0);
+        }else {
+            return new JSONObject();
+        }
+
     }
 
     public static void main(String[] args) throws Exception {

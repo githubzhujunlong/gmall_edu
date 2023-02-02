@@ -1,6 +1,7 @@
 package com.atguigu.gmall_edu.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall_edu.annotation.NotSink;
 import com.atguigu.gmall_edu.bean.TableProcess;
 import com.atguigu.gmall_edu.common.Constant;
 import com.atguigu.gmall_edu.function.PhoenixSink;
@@ -29,7 +30,7 @@ public class FlinkSinkUtil {
         return new PhoenixSink();
     }
 
-    public static FlinkKafkaProducer<String> getKafkaSink(String topic){
+    public static FlinkKafkaProducer<String> getKafkaSink(String topic) {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", Constant.KAFKA_BROKERS);
         properties.put("transaction.timeout.ms", 15 * 60 * 1000);
@@ -47,7 +48,7 @@ public class FlinkSinkUtil {
         );
     }
 
-    public static FlinkKafkaProducer<Tuple2<JSONObject, TableProcess>> getKafkaSinkForAutoTopic(){
+    public static FlinkKafkaProducer<Tuple2<JSONObject, TableProcess>> getKafkaSinkForAutoTopic() {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", Constant.KAFKA_BROKERS);
         properties.put("transaction.timeout.ms", 15 * 60 * 1000);
@@ -67,19 +68,20 @@ public class FlinkSinkUtil {
         );
     }
 
-    public static <T> SinkFunction<T> getClickhouseSink(String table, Class<T> tClass, boolean... isCamelToUnderLine){
+    public static <T> SinkFunction<T> getClickhouseSink(String table, Class<T> tClass, boolean... isCamelToUnderLine) {
         StringBuilder sql = new StringBuilder();
 
         // 获取传入bean的属性
         Field[] fields = tClass.getDeclaredFields();
         boolean flag = true;
-        if (isCamelToUnderLine.length > 0){
+        if (isCamelToUnderLine.length > 0) {
             flag = isCamelToUnderLine[0];
         }
         boolean finalFlag = flag;
         String cols = Stream.of(fields)
+                .filter(f -> f.getAnnotation(NotSink.class) == null)
                 .map(f -> {
-                    if (finalFlag){
+                    if (finalFlag) {
                         return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, f.getName());
                     }
                     return f.getName();
@@ -91,7 +93,7 @@ public class FlinkSinkUtil {
                 .append("(")
                 .append(cols)
                 .append(") values(")
-                .append(cols.replaceAll("[^,]+","?"))
+                .append(cols.replaceAll("[^,]+", "?"))
                 .append(")");
         System.out.println("clickhouse建表语句：" + sql);
 
@@ -106,11 +108,13 @@ public class FlinkSinkUtil {
                     public void accept(PreparedStatement preparedStatement, T t) throws SQLException {
                         Field[] fields = tClass.getDeclaredFields();
                         try {
-                            for (int i = 0; i < fields.length; i++) {
+                            for (int i = 0, position = 1; i < fields.length; i++) {
                                 Field field = fields[i];
-                                field.setAccessible(true);
-                                Object value = field.get(t);
-                                preparedStatement.setObject(i + 1, value);
+                                if (field.getAnnotation(NotSink.class) == null) {
+                                    field.setAccessible(true);
+                                    Object value = field.get(t);
+                                    preparedStatement.setObject(position++, value);
+                                }
                             }
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
